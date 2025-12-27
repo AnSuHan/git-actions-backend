@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: Git Actions Backend
+
+  profiles:
+    # CI/CD?? SPRING_PROFILES_ACTIVE? dev / prod-green / prod-blue? ???,
+    # ??? ?? dev? ??
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+
+server:
+  port: 8080
+  error:
+    whitelabel:
+      enabled: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
