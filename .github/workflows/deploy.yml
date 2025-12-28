@@ -66,14 +66,18 @@ jobs:
             echo "RENDER_KEY=$RENDER_PROD_BLUE_KEY" >> $GITHUB_OUTPUT
           fi
 
-      # 4) Gradle 빌드
+      # 4) Gradle wrapper에 실행 권한 부여
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      # 5) Gradle 빌드
       #    SPRING_PROFILES_ACTIVE에 위에서 결정한 PROFILE을 주입
       - name: Build with Gradle
         env:
           SPRING_PROFILES_ACTIVE: ${{ steps.set-env.outputs.PROFILE }}
         run: ./gradlew clean build --no-daemon
 
-      # 5) Render로 배포 트리거
+      # 6) Render로 배포 트리거
       #    steps.set-env.outputs.RENDER_KEY 에 들어 있는 Deploy Hook key 사용
       - name: Deploy to Render
         env:
