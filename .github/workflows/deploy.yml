@@ -55,15 +55,19 @@ jobs:
             echo "PROFILE=$SPRING_PROFILE_DEV" >> $GITHUB_OUTPUT
             echo "RENDER_KEY=$RENDER_DEV_KEY" >> $GITHUB_OUTPUT
           
-          elif [ "$BRANCH" = "main" ] && [ "$TARGET" = "green" ]; then
-            # main 브랜치 → prod-green 슬롯
+          elif [ "$BRANCH" = "main" ] && [ "$TARGET" = "blue" ]; then
+            # main 브랜치 + 수동으로 blue 선택 → prod-blue 슬롯
+            echo "PROFILE=$SPRING_PROFILE_PROD_BLUE" >> $GITHUB_OUTPUT
+            echo "RENDER_KEY=$RENDER_PROD_BLUE_KEY" >> $GITHUB_OUTPUT
+
+          elif [ "$BRANCH" = "main" ]; then
+            # main 브랜치 (기본값) → prod-green 슬롯
             echo "PROFILE=$SPRING_PROFILE_PROD_GREEN" >> $GITHUB_OUTPUT
             echo "RENDER_KEY=$RENDER_PROD_GREEN_KEY" >> $GITHUB_OUTPUT
 
           else
-            # main 브랜치 → prod-blue 슬롯
-            echo "PROFILE=$SPRING_PROFILE_PROD_BLUE" >> $GITHUB_OUTPUT
-            echo "RENDER_KEY=$RENDER_PROD_BLUE_KEY" >> $GITHUB_OUTPUT
+            echo "Unknown branch: $BRANCH"
+            exit 1
           fi
 
       # 4) Gradle wrapper에 실행 권한 부여
