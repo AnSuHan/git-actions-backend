@@ -31,6 +31,8 @@ jobs:
       #    * TARGET 은 workflow_dispatch 입력값이나 env 등으로 넘길 수 있음
       - name: Decide profile and render key
         id: set-env
+        env:
+          TARGET: ${{ env.TARGET || 'green' }}  # ← 여기에 추가 (기본값 처리)
         run: |
           BRANCH="${GITHUB_REF##*/}"
 
@@ -39,7 +41,7 @@ jobs:
             echo "PROFILE=${{ vars.SPRING_PROFILE_DEV }}" >> $GITHUB_OUTPUT
             echo "RENDER_KEY=${{ secrets.RENDER_DEV_KEY }}" >> $GITHUB_OUTPUT
 
-          elif [ "$BRANCH" = "main" ] && [ "${{ env.TARGET:-green }}" = "green" ]; then
+          elif [ "$BRANCH" = "main" ] && [ "$TARGET" = "green" ]; then  # ← ${{ }} 제거
             # main 브랜치 → prod-green 슬롯
             echo "PROFILE=${{ vars.SPRING_PROFILE_PROD_GREEN }}" >> $GITHUB_OUTPUT
             echo "RENDER_KEY=${{ secrets.RENDER_PROD_GREEN_KEY }}" >> $GITHUB_OUTPUT
