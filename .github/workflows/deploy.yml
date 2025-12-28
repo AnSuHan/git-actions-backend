@@ -34,7 +34,7 @@ jobs:
         # ⭐ YAML 레벨 (env:) → ${{ expression }}
         # ⭐ Shell 레벨 (run:) → $VAR_NAME
         env:
-          TARGET: ${{ env.TARGET || 'green' }}  # ← 여기에 추가 (기본값 처리)
+          TARGET: ${{ github.event.inputs.target || 'green' }}  # ← 여기에 추가 (기본값 처리)
           SPRING_PROFILE_DEV: ${{ vars.SPRING_PROFILE_DEV }}
           RENDER_DEV_KEY: ${{ secrets.RENDER_DEV_KEY }}
           SPRING_PROFILE_PROD_GREEN: ${{ vars.SPRING_PROFILE_PROD_GREEN }}
