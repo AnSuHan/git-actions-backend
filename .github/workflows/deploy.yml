@@ -6,6 +6,16 @@ on:
   push:
     # dev 브랜치와 main 브랜치에 푸시될 때만 실행
     branches: [ dev, main ]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Production deployment target (green or blue)'
+        required: false
+        default: 'green'
+        type: choice
+        options:
+          - green
+          - blue
 
 jobs:
   build-and-deploy:
@@ -27,14 +37,9 @@ jobs:
       #    - dev 브랜치          → SPRING_PROFILE_DEV, RENDER_DEV_KEY
       #    - main + green 타겟   → SPRING_PROFILE_PROD_GREEN, RENDER_PROD_GREEN_KEY
       #    - main + blue 타겟    → SPRING_PROFILE_PROD_BLUE, RENDER_PROD_BLUE_KEY
-      #
-      #    * TARGET 은 workflow_dispatch 입력값이나 env 등으로 넘길 수 있음
       - name: Decide profile and render key
         id: set-env
-        # ⭐ YAML 레벨 (env:) → ${{ expression }}
-        # ⭐ Shell 레벨 (run:) → $VAR_NAME
         env:
-          TARGET: ${{ github.event.inputs.target || 'green' }}  # ← 여기에 추가 (기본값 처리)
           SPRING_PROFILE_DEV: ${{ vars.SPRING_PROFILE_DEV }}
           RENDER_DEV_KEY: ${{ secrets.RENDER_DEV_KEY }}
           SPRING_PROFILE_PROD_GREEN: ${{ vars.SPRING_PROFILE_PROD_GREEN }}
@@ -43,19 +48,20 @@ jobs:
           RENDER_PROD_BLUE_KEY: ${{ secrets.RENDER_PROD_BLUE_KEY }}
         run: |
           BRANCH="${GITHUB_REF##*/}"
+          TARGET="${{ github.event.inputs.target || 'green' }}"
 
           if [ "$BRANCH" = "dev" ]; then
             # dev 환경
             echo "PROFILE=$SPRING_PROFILE_DEV" >> $GITHUB_OUTPUT
             echo "RENDER_KEY=$RENDER_DEV_KEY" >> $GITHUB_OUTPUT
-      
-          elif [ "$BRANCH" = "main" ] && [ "$TARGET" = "green" ]; then  # ← ${{ }} 제거
+          
+          elif [ "$BRANCH" = "main" ] && [ "$TARGET" = "green" ]; then
             # main 브랜치 → prod-green 슬롯
             echo "PROFILE=$SPRING_PROFILE_PROD_GREEN" >> $GITHUB_OUTPUT
             echo "RENDER_KEY=$RENDER_PROD_GREEN_KEY" >> $GITHUB_OUTPUT
 
           else
-            # main 브랜치 → prod-blue 슬롯 (기본값 or TARGET=blue)
+            # main 브랜치 → prod-blue 슬롯
             echo "PROFILE=$SPRING_PROFILE_PROD_BLUE" >> $GITHUB_OUTPUT
             echo "RENDER_KEY=$RENDER_PROD_BLUE_KEY" >> $GITHUB_OUTPUT
           fi
