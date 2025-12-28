@@ -3,12 +3,13 @@ spring:
     name: Git Actions Backend
 
   profiles:
-    # CI/CD?? SPRING_PROFILES_ACTIVE? dev / prod-green / prod-blue? ???,
-    # ??? ?? dev? ??
+    # CI/CD에서 SPRING_PROFILES_ACTIVE로 dev / prod-green / prod-blue를 지정,
+    # 기본값은 dev
     active: ${SPRING_PROFILES_ACTIVE:dev}
 
 server:
-  port: 8080
+  # Render의 PORT 환경변수 우선 사용, 없으면 8080
+  port: ${PORT:8080}
   error:
     whitelabel:
       enabled: false

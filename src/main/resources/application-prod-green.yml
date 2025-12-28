@@ -1,16 +1,13 @@
+# green은 새 버전 배포 대기 상태
 spring:
   config:
     activate:
       on-profile: prod-green
 
+server:
+  port: ${PORT:30002}  # prod-green 환경 기본 포트 30002
+
 logging:
   level:
     root: INFO
     org.springframework.web: INFO
-
-# 예: green 인스턴스 전용 설정이 필요하면 여기에 추가
-# spring:
-#   datasource:
-#     url: ${DB_URL_GREEN}
-#     username: ${DB_USERNAME_GREEN}
-#     password: ${DB_PASSWORD_GREEN}
