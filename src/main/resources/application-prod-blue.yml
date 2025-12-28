@@ -1,0 +1,16 @@
+spring:
+  config:
+    activate:
+      on-profile: prod-blue
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: INFO
+
+# 예: blue 인스턴스 전용 설정
+# spring:
+#   datasource:
+#     url: ${DB_URL_BLUE}
+#     username: ${DB_USERNAME_BLUE}
+#     password: ${DB_PASSWORD_BLUE}

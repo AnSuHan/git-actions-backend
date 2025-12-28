@@ -1,0 +1,16 @@
+spring:
+  config:
+    activate:
+      on-profile: prod-green
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: INFO
+
+# 예: green 인스턴스 전용 설정이 필요하면 여기에 추가
+# spring:
+#   datasource:
+#     url: ${DB_URL_GREEN}
+#     username: ${DB_USERNAME_GREEN}
+#     password: ${DB_PASSWORD_GREEN}
