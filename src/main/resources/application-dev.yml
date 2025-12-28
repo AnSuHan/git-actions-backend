@@ -1,0 +1,12 @@
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+server:
+  port: ${PORT:30001}  # dev 환경 기본 포트 30001
+
+logging:
+  level:
+    root: DEBUG
+    org.springframework.web: DEBUG

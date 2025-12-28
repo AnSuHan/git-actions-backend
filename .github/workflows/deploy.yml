@@ -1,0 +1,90 @@
+# 브랜치별(dev, main) 푸시 시 CI 빌드 + Render 배포를 수행하는 워크플로우
+
+name: Backend Deploy
+
+on:
+  push:
+    # dev 브랜치와 main 브랜치에 푸시될 때만 실행
+    branches: [ dev, main ]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Production deployment target (green or blue)'
+        required: false
+        default: 'green'
+        type: choice
+        options:
+          - green
+          - blue
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest  # GitHub가 제공하는 Ubuntu 러너에서 실행
+
+    steps:
+      # 1) 현재 레포지토리 코드 체크아웃
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 2) JDK 21 설치
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      # 3) 브랜치/타겟에 따라 Spring Profile & Render Deploy Key 결정
+      #    - dev 브랜치          → SPRING_PROFILE_DEV, RENDER_DEV_KEY
+      #    - main + green 타겟   → SPRING_PROFILE_PROD_GREEN, RENDER_PROD_GREEN_KEY
+      #    - main + blue 타겟    → SPRING_PROFILE_PROD_BLUE, RENDER_PROD_BLUE_KEY
+      - name: Decide profile and render key
+        id: set-env
+        env:
+          SPRING_PROFILE_DEV: ${{ vars.SPRING_PROFILE_DEV }}
+          RENDER_DEV_KEY: ${{ secrets.RENDER_DEV_KEY }}
+          SPRING_PROFILE_PROD_GREEN: ${{ vars.SPRING_PROFILE_PROD_GREEN }}
+          RENDER_PROD_GREEN_KEY: ${{ secrets.RENDER_PROD_GREEN_KEY }}
+          SPRING_PROFILE_PROD_BLUE: ${{ vars.SPRING_PROFILE_PROD_BLUE }}
+          RENDER_PROD_BLUE_KEY: ${{ secrets.RENDER_PROD_BLUE_KEY }}
+        run: |
+          BRANCH="${GITHUB_REF##*/}"
+          TARGET="${{ github.event.inputs.target || 'green' }}"
+
+          if [ "$BRANCH" = "dev" ]; then
+            # dev 환경
+            echo "PROFILE=$SPRING_PROFILE_DEV" >> $GITHUB_OUTPUT
+            echo "RENDER_KEY=$RENDER_DEV_KEY" >> $GITHUB_OUTPUT
+          
+          elif [ "$BRANCH" = "main" ] && [ "$TARGET" = "blue" ]; then
+            # main 브랜치 + 수동으로 blue 선택 → prod-blue 슬롯
+            echo "PROFILE=$SPRING_PROFILE_PROD_BLUE" >> $GITHUB_OUTPUT
+            echo "RENDER_KEY=$RENDER_PROD_BLUE_KEY" >> $GITHUB_OUTPUT
+
+          elif [ "$BRANCH" = "main" ]; then
+            # main 브랜치 (기본값) → prod-green 슬롯
+            echo "PROFILE=$SPRING_PROFILE_PROD_GREEN" >> $GITHUB_OUTPUT
+            echo "RENDER_KEY=$RENDER_PROD_GREEN_KEY" >> $GITHUB_OUTPUT
+
+          else
+            echo "Unknown branch: $BRANCH"
+            exit 1
+          fi
+
+      # 4) Gradle wrapper에 실행 권한 부여
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      # 5) Gradle 빌드
+      #    SPRING_PROFILES_ACTIVE에 위에서 결정한 PROFILE을 주입
+      - name: Build with Gradle
+        env:
+          SPRING_PROFILES_ACTIVE: ${{ steps.set-env.outputs.PROFILE }}
+        run: ./gradlew clean build --no-daemon
+
+      # 6) Render로 배포 트리거
+      #    steps.set-env.outputs.RENDER_KEY 에 들어 있는 Deploy Hook key 사용
+      - name: Deploy to Render
+        env:
+          RENDER_KEY: ${{ steps.set-env.outputs.RENDER_KEY }}
+        run: |
+          curl -X POST "https://api.render.com/webhooks/deploy?key=$RENDER_KEY"

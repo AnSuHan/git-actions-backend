@@ -1,0 +1,13 @@
+# green은 새 버전 배포 대기 상태
+spring:
+  config:
+    activate:
+      on-profile: prod-green
+
+server:
+  port: ${PORT:30002}  # prod-green 환경 기본 포트 30002
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: INFO
