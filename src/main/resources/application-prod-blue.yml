@@ -1,16 +1,13 @@
+# blue가 현재 운영(라이브) 환경으로 트래픽을 받는 상태
 spring:
   config:
     activate:
       on-profile: prod-blue
 
+server:
+  port: ${PORT:30003}  # prod-blue 환경 기본 포트 30003
+
 logging:
   level:
     root: INFO
     org.springframework.web: INFO
-
-# 예: blue 인스턴스 전용 설정
-# spring:
-#   datasource:
-#     url: ${DB_URL_BLUE}
-#     username: ${DB_USERNAME_BLUE}
-#     password: ${DB_PASSWORD_BLUE}
